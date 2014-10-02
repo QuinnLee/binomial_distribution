@@ -1,0 +1,201 @@
+<!DOCCTYPE html>
+<meta charset="utf-8">
+<body>
+  <div class='distribution'></div>
+
+  <p>
+    <label for="count" style="display: inline-block; width: 240px; text-align: right">
+      count = <span id="count-value">…</span>
+    </label>
+    <input type="range" min="1" max="50" id="count">
+  </p>
+
+  <p>
+    <label for="area" style="display: inline-block; width: 240px; text-align: right"></label>
+    <input type="range" min="0" max="1" step='0.05' id="area">
+  </p>
+  
+  <button id='start'> Start </button>
+  <h2 id='expectedCount'></h2>
+
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script>
+  var width = 200,
+    height = 200;
+
+  var factorial = (
+    function() {
+      var cache = {},
+      fn = function(n) {
+        if (n === 0) {
+          return 1;
+        } else if (cache[n]) {
+          return cache[n];
+        }
+      return cache[n] = n * fn(n -1);
+      };
+    return fn;
+  }());
+
+  var distribution = d3.select(".distribution").append("svg")
+      .attr("width", width)
+      .attr("height", height)
+
+  var square = distribution.append('rect')
+      .attr("x", 125)
+      .attr("y", 125)
+      .style("fill", "grey")
+      .attr("height", 250)
+      .attr("width", 250);
+
+  updateCount(100);
+  updateArea(0.5);
+
+  d3.select('#count').on('input', function(){
+    updateCount(parseInt(this.value));
+  });
+
+  d3.select('#area').on('input', function(){
+    updateArea(parseFloat(this.value));
+    d3.timer(updateCircles, 1000);
+  });
+
+  d3.select('#start').on('click', function() {
+    distribution.selectAll('circle').remove()
+    var dotCount = d3.select('#count').property('value');
+    var sample = uniformRandomSampler(width, height, dotCount);
+
+    d3.timer(function() {
+      var s = sample();
+      if (!s) return true;
+      distribution.append("circle")
+          .attr("cx", s[0])
+          .attr("cy", s[1])
+          .attr("r", 0)
+          .data([{x: s[0], y: s[1]}])
+        .transition()
+          .duration(function() {return 1000})
+          .attr("r", 6)
+          .attr("fill", function (d) {return updateCircleColor(d)})
+    });
+  });
+
+  function binomialDistributionArray(p, n) {
+    binomialMassArray = []
+    for(var i=0; i <= n; i++){
+      binomialMassArray.push(
+        {
+          'p': (factorial(n)/(factorial(n-i)*factorial(i))) * Math.pow(p,i) * Math.pow((1-p),n-i),
+          'i': i
+        }
+      )
+    }
+    return binomialMassArray
+  }
+
+  function updateCircleColor(d) {
+    rectData = distribution.select('rect').datum()
+    if(d.x >= rectData.topX && d.x <= rectData.botX && d.y >= rectData.topY &&  d.y <= rectData.botY){
+      return 'blue'
+    }else {
+      return 'black'
+    }
+  }
+
+  function updateCircles() {
+    distribution.selectAll('circle')
+      .attr("fill", function (d) {return updateCircleColor(d)})
+  }
+
+  function updateCount(count) {
+    d3.select('#count-value').text(count);
+    d3.select('#count').property('value', count);
+  }
+
+  function updateArea(area) {
+    d3.select('#area').property('value', area);
+    length = width * area;
+    center = (width - length) / 2.0 ;
+    distribution.select("rect")
+      .attr("x", center)
+      .attr("y", center)
+      .data([{
+              probablity: Math.pow(parseFloat(area), 2),
+              area: Math.pow(length, 2),
+              topX: center,
+              topY: center,
+              botX: center + length,
+              botY: center + length
+            }])
+      .attr("height", length)
+      .attr("width", length);
+
+  }
+
+  function uniformRandomSampler(width, height, numSamplesMax) {
+    var numSamples = 0;
+    return function() {
+      if (++numSamples > numSamplesMax) return;
+      return [Math.random() * width, Math.random() * height];
+    };
+  }
+
+  var data = binomialDistributionArray(0.5 ,10)
+  var graph_margin = {
+    top: 20,
+    right: 20,
+    bottom: 20,
+    left: 70
+    },
+    graph_width = 500 - graph_margin.left - graph_margin.right,
+    graph_height = 500 - graph_margin.top - graph_margin.bottom;
+
+  var svg = d3.select("body").append("svg")
+    .attr("width", graph_width + graph_margin.left + graph_margin.right)
+    .attr("height", graph_height + graph_margin.top + graph_margin.bottom)
+  .append('g')
+    .attr("transform", "translate(" + graph_margin.left + "," + graph_margin.top + ")");
+
+  var x = d3.scale.linear()
+    .range([0, graph_width]);
+
+  var y = d3.scale.linear()
+    .range([graph_height, 0]);
+
+  var xAxis = d3.svg.axis()
+      .scale(x)
+      .orient("bottom");
+
+  var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+  var line = d3.svg.line()
+    .interpolate("basis")
+    .x(function(d) { return x(d.i)})
+    .y(function(d) { return y(d.p)});
+
+  x.domain(d3.extent(data, function(d) { return d.i; }));
+  y.domain(d3.extent(data, function(d) { return d.p; }));
+
+  svg.append('g')
+    .attr("class", "x axis")
+    .attr("transform", "translate(0,"+graph_height+")")
+    .call(xAxis);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end");
+
+   var linegraph =  svg.append('path')
+      .transition()
+      .duration(400)
+      .attr('d', line(data));
+
+  </script>
+</body>
