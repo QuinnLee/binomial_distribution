@@ -14,8 +14,12 @@
     <label for="area" style="display: inline-block; width: 240px; text-align: right"></label>
     <input type="range" min="0" max="1" step='0.05' id="area">
   </p>
-  
+
   <button id='start'> Start </button>
+
+  <h1> Summary </h1>
+  <h2 id='trialCount'></h2>
+  <h2 id='currentCount'></h2>
   <h2 id='expectedCount'></h2>
 
   <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -38,15 +42,15 @@
   }());
 
   var distribution = d3.select(".distribution").append("svg")
-      .attr("width", width)
-      .attr("height", height)
+    .attr("width", width)
+    .attr("height", height)
 
   var square = distribution.append('rect')
-      .attr("x", 125)
-      .attr("y", 125)
-      .style("fill", "grey")
-      .attr("height", 250)
-      .attr("width", 250);
+    .attr("x", 125)
+    .attr("y", 125)
+    .style("fill", "grey")
+    .attr("height", 250)
+    .attr("width", 250);
 
   var graph_margin = {
     top: 20,
@@ -57,7 +61,13 @@
     graph_width = 400 - graph_margin.left - graph_margin.right,
     graph_height = 300 - graph_margin.top - graph_margin.bottom;
 
-  var svg = d3.select("body").append("svg")
+  var pdf = d3.select("body").append("svg")
+    .attr("width", graph_width + graph_margin.left + graph_margin.right)
+    .attr("height", graph_height + graph_margin.top + graph_margin.bottom)
+  .append('g')
+    .attr("transform", "translate(" + graph_margin.left + "," + graph_margin.top + ")");
+
+  var cdf = d3.select("body").append("svg")
     .attr("width", graph_width + graph_margin.left + graph_margin.right)
     .attr("height", graph_height + graph_margin.top + graph_margin.bottom)
   .append('g')
@@ -72,26 +82,49 @@
   var xAxis = d3.svg.axis()
     .scale(x)
     .orient("bottom")
-    .tickFormat(d3.format(",d"))
+    .tickFormat(d3.format(",d"));
 
   var yAxis = d3.svg.axis()
     .scale(y)
     .orient("left")
-    .ticks(5);
+    .ticks(11);
+
+  var lineGraph = pdf.append('path');
+
+  var lineCDFGraph = cdf.append('path');
 
   var line = d3.svg.line()
+    .interpolate("basis")
+    .x(function(d) { return x(d.i) })
+    .y(function(d) { return y(d.p) });
 
-  var xAxisSvg = svg.append('g')
+  var lineCDF = d3.svg.line()
+    .interpolate("basis")
+    .x(function(d,i) { return i })
+    .y(function(d) { return y(d) });
+
+  var xAxisPDFLabel = pdf.append('g')
     .attr("class", "x axis")
-    .attr("transform", "translate(0,"+graph_height+")")
+    .attr("transform", "translate(0,"+graph_height+")");
 
-  var yAxisSvg = svg.append("g")
-      .attr("class", "y axis")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end");
+  var yAxisPDFLabel = pdf.append("g")
+    .attr("class", "y axis")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end");
 
-  var linegraph =  svg.append('path')
+  var xAxisCDFLabel = cdf.append('g')
+    .attr("class", "x axis")
+    .attr("transform", "translate(0,"+graph_height+")");
+
+  var yAxisCDFLabel = cdf.append("g")
+    .attr("class", "y axis")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end");
+
+  var dotCount = 0;
+  var trialCount = 0;
 
   updateCount(100);
   updateArea(0.5);
@@ -119,24 +152,12 @@
           .attr("r", 0)
           .data([{x: s[0], y: s[1]}])
         .transition()
-          .duration(function() {return 1000})
+          .duration(400)
           .attr("r", 6)
           .attr("fill", function (d) {return updateCircleColor(d)})
     });
   });
 
-  function binomialDistributionArray(p, n) {
-    binomialMassArray = []
-    for(var i=0; i <= n; i++){
-      binomialMassArray.push(
-        {
-          'p': (factorial(n)/(factorial(n-i)*factorial(i))) * Math.pow(p,i) * Math.pow((1-p),n-i),
-          'i': i
-        }
-      )
-    }
-    return binomialMassArray
-  }
 
   function updateCircleColor(d) {
     rectData = distribution.select('rect').datum()
@@ -147,6 +168,18 @@
     }
   }
 
+  function updateTrialCount() {
+  }
+
+  function resetTrialCount() {
+  }
+
+  function setExpectedCount(probablity, count) {
+  }
+
+  function setCurrentCount() {
+  }
+
   function updateCircles() {
     distribution.selectAll('circle')
       .attr("fill", function (d) {return updateCircleColor(d)})
@@ -155,35 +188,15 @@
   function updateCount(count) {
     d3.select('#count-value').text(count);
     d3.select('#count').property('value', count);
-    var area = d3.select('#area').property('value');
 
-    var data = binomialDistributionArray( Math.pow(parseFloat(area), 2), count)
-
-    y.domain([0, 0.25])
-    x.domain([0, count])
-
-    line.interpolate("basis")
-      .x(function(d) { return x(d.i)})
-      .y(function(d) { return y(d.p)});
-
-    linegraph.transition()
-        .duration(400)
-        .attr('d', line(data))
-        .attr('fill', 'none')
-        .attr("stroke-width", 2)
-        .attr("stroke", "black");
-
-    xAxisSvg.call(xAxis);
-
-    yAxisSvg.call(yAxis)
+    setLineGraph()
   }
 
   function updateArea(area) {
     d3.select('#area').property('value', area);
-
-    var count = d3.select('#count').property('value');
     length = width * area;
     center = (width - length) / 2.0 ;
+
     distribution.select("rect")
       .attr("x", center)
       .attr("y", center)
@@ -198,23 +211,48 @@
       .attr("height", length)
       .attr("width", length);
 
-  var data = binomialDistributionArray( Math.pow(parseFloat(area), 2), count)
+    setLineGraph()
+  }
 
-  line.interpolate("basis")
-    .x(function(d) { return x(d.i)})
-    .y(function(d) { return y(d.p)});
+  function setLineGraph() {
+    var area = d3.select('#area').property('value');
+    var count = d3.select('#count').property('value');
+    var pdf = binomialDistributionArray( Math.pow(parseFloat(area), 2), count)
 
-  linegraph.transition()
+    var cdf = []
+
+    pdf.reduce(function(p,c,i){
+      cdf[i] = parseFloat((c.p)+ p)
+      return parseFloat((c.p)+ p)
+    }, 0)
+    
+    x.domain([0, count])
+    y.domain(d3.extent(pdf,function(d) { return d.p }))
+
+    lineGraph.transition()
       .duration(400)
-      .attr('d', line(data))
+      .attr('d', line(pdf))
       .attr('fill', 'none')
       .attr("stroke-width", 2)
       .attr("stroke", "black");
 
-  xAxisSvg.call(xAxis);
+    xAxisPDFLabel.call(xAxis);
+    yAxisPDFLabel.call(yAxis);
 
-  yAxisSvg.call(yAxis)
+    y.domain(d3.extent(cdf,function(d) { return d })).clamp(true)
+    x.domain([0, count])
+
+    lineCDFGraph.transition()
+      .duration(400)
+      .attr('d', lineCDF(cdf))
+      .attr('fill', 'none')
+      .attr("stroke-width", 2)
+      .attr("stroke", "black");
+
+    xAxisCDFLabel.call(xAxis);
+    yAxisCDFLabel.call(yAxis);
   }
+
 
   function uniformRandomSampler(width, height, numSamplesMax) {
     var numSamples = 0;
@@ -224,6 +262,18 @@
     };
   }
 
+  function binomialDistributionArray(p, n) {
+    binomialMassArray = []
+    for(var i=0; i <= n; i++){
+      binomialMassArray.push(
+        {
+          'p': (factorial(n)/(factorial(n-i)*factorial(i))) * Math.pow(p,i) * Math.pow((1-p),n-i),
+          'i': i
+        }
+      )
+    }
+    return binomialMassArray
+  }
 
   </script>
 </body>
