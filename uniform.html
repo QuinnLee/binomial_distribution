@@ -54,20 +54,14 @@
 
   var graph_margin = {
     top: 20,
-    right: 20,
+    right: 70,
     bottom: 20,
     left: 70
     },
-    graph_width = 400 - graph_margin.left - graph_margin.right,
+    graph_width = 600 - graph_margin.left - graph_margin.right,
     graph_height = 300 - graph_margin.top - graph_margin.bottom;
 
   var pdf = d3.select("body").append("svg")
-    .attr("width", graph_width + graph_margin.left + graph_margin.right)
-    .attr("height", graph_height + graph_margin.top + graph_margin.bottom)
-  .append('g')
-    .attr("transform", "translate(" + graph_margin.left + "," + graph_margin.top + ")");
-
-  var cdf = d3.select("body").append("svg")
     .attr("width", graph_width + graph_margin.left + graph_margin.right)
     .attr("height", graph_height + graph_margin.top + graph_margin.bottom)
   .append('g')
@@ -89,9 +83,14 @@
     .orient("left")
     .ticks(11);
 
+  var yAxisRight = d3.svg.axis()
+    .scale(y)
+    .orient("right")
+    .ticks(11);
+
   var lineGraph = pdf.append('path');
 
-  var lineCDFGraph = cdf.append('path');
+  var lineCDFGraph = pdf.append('path');
 
   var line = d3.svg.line()
     .interpolate("basis")
@@ -100,28 +99,16 @@
 
   var lineCDF = d3.svg.line()
     .interpolate("basis")
-    .x(function(d,i) { return i })
+    .x(function(d,i) { return x(i) })
     .y(function(d) { return y(d) });
 
   var xAxisPDFLabel = pdf.append('g')
-    .attr("class", "x axis")
     .attr("transform", "translate(0,"+graph_height+")");
 
   var yAxisPDFLabel = pdf.append("g")
-    .attr("class", "y axis")
-    .attr("y", 6)
-    .attr("dy", ".71em")
-    .style("text-anchor", "end");
 
-  var xAxisCDFLabel = cdf.append('g')
-    .attr("class", "x axis")
-    .attr("transform", "translate(0,"+graph_height+")");
-
-  var yAxisCDFLabel = cdf.append("g")
-    .attr("class", "y axis")
-    .attr("y", 6)
-    .attr("dy", ".71em")
-    .style("text-anchor", "end");
+  var yAxisCDFLabel = pdf.append("g")
+    .attr("transform", "translate(" + graph_width + " ,0)")
 
   var dotCount = 0;
   var trialCount = 0;
@@ -168,17 +155,6 @@
     }
   }
 
-  function updateTrialCount() {
-  }
-
-  function resetTrialCount() {
-  }
-
-  function setExpectedCount(probablity, count) {
-  }
-
-  function setCurrentCount() {
-  }
 
   function updateCircles() {
     distribution.selectAll('circle')
@@ -230,29 +206,38 @@
     y.domain(d3.extent(pdf,function(d) { return d.p }))
 
     lineGraph.transition()
-      .duration(400)
       .attr('d', line(pdf))
       .attr('fill', 'none')
-      .attr("stroke-width", 2)
-      .attr("stroke", "black");
+      .attr("stroke-width", 1)
+      .attr("stroke", "black")
 
     xAxisPDFLabel.call(xAxis);
+
     yAxisPDFLabel.call(yAxis);
 
-    y.domain(d3.extent(cdf,function(d) { return d })).clamp(true)
+    y.domain([0.0, 1.0]).clamp()
     x.domain([0, count])
 
     lineCDFGraph.transition()
-      .duration(400)
       .attr('d', lineCDF(cdf))
       .attr('fill', 'none')
-      .attr("stroke-width", 2)
+      .attr("stroke-width", 1)
       .attr("stroke", "black");
 
-    xAxisCDFLabel.call(xAxis);
-    yAxisCDFLabel.call(yAxis);
+    yAxisCDFLabel.call(yAxisRight);
   }
 
+  function updateTrialCount() {
+  }
+
+  function resetTrialCount() {
+  }
+
+  function setExpectedCount(probablity, count) {
+  }
+
+  function setCurrentCount() {
+  }
 
   function uniformRandomSampler(width, height, numSamplesMax) {
     var numSamples = 0;
