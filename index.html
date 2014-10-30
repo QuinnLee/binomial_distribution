@@ -408,8 +408,8 @@
   }
 
   function updateArea(area) {
-    d3.select('#area').property('value', area);
-    d3.select('#area-value').text(formatAsPercentage(area));
+    d3.select('#area').property('value', area)
+    d3.select('#area-value').text(formatAsPercentage(Math.pow(area,2)))
     d3.select('#pdf-string').text("Hover of the PDF line")
     d3.select('#cdf-string').text("Hover of the CDF line")
     d3.select('#pdf-percent').text("...")
