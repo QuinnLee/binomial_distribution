@@ -1,31 +1,176 @@
 <!DOCCTYPE html>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+</head>
 <meta charset="utf-8">
 <body>
-  <div class='distribution'></div>
+  <div class='container'>
+    <div class='row'>
+      <h2 class='col-md-12 text-center'>
+        Binomial Distribution
+      </h2>
+    </div>
 
-  <p>
-    <label for="count" style="display: inline-block; width: 240px; text-align: right">
-      count = <span id="count-value">…</span>
-    </label>
-    <input type="range" min="1" max="100" id="count">
-  </p>
+    <div class='row'>
+      <div class='col-md-12 text-center'>
+        <p>
+          Welcome to an interactive binomial distribution.  The PDF is a blue curve, with the left X axis.  The CDF curve is black, with the right X axis.
+          To create PDF and CDF curves, change the Dot Sample Size(N) and Grey box area (P).
+          By running trials, dots are generated randomly and the ones in the grey box turn blue.  The data from the trials are graphed on the graph below.
+        </p>
+      </div>
+    </div>
 
-  <p>
-    <label for="area" style="display: inline-block; width: 240px; text-align: right"></label>
-    <input type="range" min="0" max="1" step='0.05' id="area">
-  </p>
+    <div class='row'>
+      <div class='statistics col-md-4 text-center'>
+        <ul>
+          <li>
+            <p> Hover over the bars</p>
+            <p id='histo-string'>...</p>
+          </li>
+          <li>
+            <p id='cdf-string'>Hover of the PDF line</p>
+            <p id='cdf-percent'>...</p>
+          </li>
+          <li>
+            <p id='pdf-string'>Hover of the PDF line</p>
+            <p id='pdf-percent'>...</p>
+          </li>
+        </ul>
+      </div>
 
-  <button id='start'> Start </button>
+      <div class='col-md-4 text-center'>
+        <div class='distribution'></div>
+      </div>
 
-  <h1> Summary </h1>
-  <h2 id='trialCount'></h2>
-  <h2 id='currentCount'></h2>
-  <h2 id='expectedCount'></h2>
+      <div class='col-md-4 text-center controls'>
+        <label for="count" class='row' style="display: inline-block; width: 240px;">
+          <p> Dot Sample Size (N): <span id ="count-value">…</span></p>
+          <input type="range" min="1" max="100" id="count">
+        </label>
+        <label for="area" class='row' style="display: inline-block; width: 240px;">
+          <p> Probability to be blue (P): <span id="area-value">…</span></p>
+          <input type="range" min="0" max="1" step='0.05' id="area">
+        </label>
+        <p> # of Trials <span id='trial-count'> 0 </span></p>
+        <p> Current Blue Dots: <span id='blue-count'> 0 </span></p>
+        <p> Expected Amout of Blue Dots: <span id='expected'> 0 </span></p>
+        <div class='row control-buttons'>
+          <button id='start' class='btn btn-default'>1 Trial</button>
+          <button id='hundred' class='btn btn-default'>100 Trials</button>
+          <button id='clear' class='btn btn-warning'>Clear Trials</button>
+        </div>
+      </div>
+    </div>
 
+    <div class='row text-center'>
+    </div>
+
+    <div class='row'>
+      <div class='graph text-center'></div>
+    </div>
+  </div>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: sans-serif;
+    }
+
+
+    .container {
+      width: 800px;
+    }
+
+    ul {
+      padding: 0;
+      list-style-type: none;
+    }
+
+    .controls {
+      padding-top: 20px;
+    }
+
+    .controls p {
+      margin: 0;
+     }
+
+    .statistics {
+      padding-top: 20px;
+    }
+
+    .statistics p {
+      margin: 0;
+    }
+
+    .control-buttons {
+      padding-top: 20px;
+     }
+
+    .axis path, .axis line {
+      fill: none;
+      stroke: black;
+      shape-rendering: crispEdges;
+    }
+
+    .x.axis path{
+      display: none;
+    }
+
+    .axis text {
+      font-size: 11px;
+    }
+
+    .overlay {
+      fill: none;
+      pointer-events: all;
+    }
+
+    .distribution svg {
+      stroke: black;
+      border: 1;
+    }
+
+    .pdf-focus circle {
+      fill: steelblue;
+      stroke: steelblue;
+    }
+    .cdf-focus circle {
+      fill: black;
+      stroke: black;
+    }
+
+  </style>
   <script src="./d3.min.js"></script>
   <script>
-  var width = 200,
-    height = 200;
+
+  var width = 200
+  var height = 200
+
+  var graph_margin = {
+    top: 20,
+    right: 70,
+    bottom: 70,
+    left: 70
+  }
+
+  var graph_width = 600 - graph_margin.left - graph_margin.right
+  var graph_height = 300 - graph_margin.top - graph_margin.bottom;
+
+  var distribution = d3.select(".distribution").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("border", 1 )
+
+  var square = distribution.append('rect')
+    .attr("x", 125)
+    .attr("y", 125)
+    .style("fill", "grey")
+    .attr("height", 250)
+    .attr("width", 250);
 
   var factorial = (
     function() {
@@ -41,79 +186,100 @@
     return fn;
   }());
 
-  var distribution = d3.select(".distribution").append("svg")
-    .attr("width", width)
-    .attr("height", height)
-
-  var square = distribution.append('rect')
-    .attr("x", 125)
-    .attr("y", 125)
-    .style("fill", "grey")
-    .attr("height", 250)
-    .attr("width", 250);
-
-  var graph_margin = {
-    top: 20,
-    right: 70,
-    bottom: 20,
-    left: 70
-    },
-    graph_width = 600 - graph_margin.left - graph_margin.right,
-    graph_height = 300 - graph_margin.top - graph_margin.bottom;
-
-  var pdf = d3.select("body").append("svg")
+  var svg = d3.select(".graph").append("svg")
     .attr("width", graph_width + graph_margin.left + graph_margin.right)
     .attr("height", graph_height + graph_margin.top + graph_margin.bottom)
   .append('g')
-    .attr("transform", "translate(" + graph_margin.left + "," + graph_margin.top + ")");
+    .attr("transform", "translate(" + graph_margin.left + "," + graph_margin.top + ")")
 
   var x = d3.scale.linear()
     .range([0, graph_width]);
 
-  var y = d3.scale.linear()
+  var yCDF = d3.scale.linear()
     .range([graph_height, 0]);
+
+  var yPDF = d3.scale.linear()
+    .range([graph_height, 0]);
+
+  var formatAsPercentage = d3.format(".1%")
+  var formatAsExactPercentage = d3.format(".3%")
+  var formatAsExact = d3.format(".15%")
 
   var xAxis = d3.svg.axis()
     .scale(x)
     .orient("bottom")
-    .tickFormat(d3.format(",d"));
+    .tickPadding(10)
+    .tickSubdivide(true)
 
   var yAxis = d3.svg.axis()
-    .scale(y)
+    .scale(yPDF)
     .orient("left")
-    .ticks(11);
+    .tickPadding(10)
+    .tickSubdivide(true)
+    .tickFormat(formatAsPercentage)
 
   var yAxisRight = d3.svg.axis()
-    .scale(y)
+    .scale(yCDF)
     .orient("right")
-    .ticks(11);
+    .tickPadding(10)
+    .tickSubdivide(true)
+    .tickFormat(formatAsPercentage)
 
-  var lineGraph = pdf.append('path');
+  var lineGraph = svg.append('path')
+    .attr('class', 'pdf')
 
-  var lineCDFGraph = pdf.append('path');
+  var lineCDFGraph = svg.append('path')
+    .attr('class', 'cdf')
 
-  var line = d3.svg.line()
+  var bar = svg.selectAll(".bar")
+    .append("g")
+    .attr("class", "bar")
+
+  var linePDF = d3.svg.line()
     .interpolate("basis")
     .x(function(d) { return x(d.i) })
-    .y(function(d) { return y(d.p) });
+    .y(function(d) { return yPDF(d.p) })
 
   var lineCDF = d3.svg.line()
     .interpolate("basis")
-    .x(function(d,i) { return x(i) })
-    .y(function(d) { return y(d) });
+    .x(function(d) { return x(d.i) })
+    .y(function(d) { return yCDF(d.p) });
 
-  var xAxisPDFLabel = pdf.append('g')
-    .attr("transform", "translate(0,"+graph_height+")");
+  var xAxisPDFLabel = svg.append('g')
+    .attr("class", "x axis")
+    .attr("transform", "translate(0,"+graph_height+")")
 
-  var yAxisPDFLabel = pdf.append("g")
+  var yAxisPDFLabel = svg.append("g")
+    .attr("class", "axis")
 
-  var yAxisCDFLabel = pdf.append("g")
+  var yAxisCDFLabel = svg.append("g")
     .attr("transform", "translate(" + graph_width + " ,0)")
+    .attr("class", "axis")
+
+  var pdfFocus = svg.append("g")
+    .attr("class", "pdf-focus")
+  pdfFocus.append("circle")
+    .attr("r", 4.5);
+  pdfFocus.append("text")
+    .attr("x", 10)
+    .attr("dy", ".35em");
+
+  var cdfFocus = svg.append("g")
+    .attr("class", "cdf-focus")
+  cdfFocus.append("circle")
+    .attr("r", 4.5);
+  cdfFocus.append("text")
+    .attr("x", 10)
+    .attr("dy", ".35em");
+
+  var bisect = d3.bisector(function(d) { return d.i; }).left
+  var bisectHistogram = d3.bisector(function(d) { return d.x; }).left
 
   var dotCount = 0;
-  var trialCount = 0;
+  var histrogramData = [];
+  var data = [];
 
-  updateCount(100);
+  updateCount(50);
   updateArea(0.5);
 
   d3.select('#count').on('input', function(){
@@ -126,50 +292,128 @@
   });
 
   d3.select('#start').on('click', function() {
+    populateSquare();
+  });
+
+  d3.select('#clear').on('click', function() {
+    resetHistogram()
+  });
+
+  d3.select('#hundred').on('click', function() {
+    var dotCount = d3.select('#count').property('value');
+    var probablity = distribution.select("rect").datum().probablity;
+    var normalDistribution = d3.random.normal(dotCount * probablity, Math.sqrt(dotCount * probablity * (1-probablity)));
+
+    for(var i = 1; i < 100; i++){
+      histrogramData.push(parseInt(normalDistribution()))
+    }
+
+    populateSquare();
+    setHistogram(histrogramData)
+  });
+
+  function populateSquare(){
     distribution.selectAll('circle').remove()
     var dotCount = d3.select('#count').property('value');
     var sample = uniformRandomSampler(width, height, dotCount);
-
-    d3.timer(function() {
+    for (var i = 0; i< dotCount; i++) {
       var s = sample();
-      if (!s) return true;
       distribution.append("circle")
           .attr("cx", s[0])
           .attr("cy", s[1])
           .attr("r", 0)
           .data([{x: s[0], y: s[1]}])
         .transition()
-          .duration(400)
           .attr("r", 6)
           .attr("fill", function (d) {return updateCircleColor(d)})
-    });
-  });
+          .attr('opacity', 0.65)
+    }
+    d3.select('#blue-count').text(countInRect())
+    histrogramData.push(countInRect())
+    setHistogram(histrogramData)
+  };
 
+  function setHistogram(histrogramData) {
+    tickCount = Math.max(parseInt(Math.pow(Math.log(histrogramData.length), 2)), 10)
+    data = d3.layout.histogram().bins(x.ticks(tickCount))(histrogramData);
+    d3.select('#trial-count').text(histrogramData.length)
+
+    var y = d3.scale.linear()
+        .domain([0, d3.max(data, function(d) { return d.y; })])
+        .range([graph_height, 0]);
+
+    svg.selectAll(".bar").remove()
+
+    var bar = svg.selectAll(".bar")
+      .data(data)
+
+      bar.enter()
+       .append("g")
+       .attr("transform", function(d) { return "translate(" +( x(d.x) - x(d.dx)/2.0) + "," + y(d.y) + ")"; })
+       .append("rect")
+       .attr('class', 'bar')
+       .attr("width", function(d){ return x(d.dx)})
+       .attr("height", function(d) { return graph_height - y(d.y); })
+       .style("opacity", .4)
+       .transition()
+       .style("opacity", function(d){ return Math.min(Math.sqrt(d.length)/count, 0.5) })
+
+    applyOverlay()
+  }
+
+  function resetHistogram() {
+    histrogramData = [ ]
+    setHistogram(histrogramData)
+    d3.select('#trial-count').text(0)
+  }
 
   function updateCircleColor(d) {
     rectData = distribution.select('rect').datum()
     if(d.x >= rectData.topX && d.x <= rectData.botX && d.y >= rectData.topY &&  d.y <= rectData.botY){
-      return 'blue'
-    }else {
+      return 'steelblue'
+    }else{
       return 'black'
     }
   }
 
+  function countInRect(){
+    rectData = distribution.select('rect').datum()
+    circlesData = distribution.selectAll('circle').data()
+
+    return count = circlesData.reduce(function(memo, d){
+      if(d.x >= rectData.topX && d.x <= rectData.botX && d.y >= rectData.topY &&  d.y <= rectData.botY){
+        return memo + 1
+      } else {
+        return memo
+      }
+    }, 0);
+  }
 
   function updateCircles() {
     distribution.selectAll('circle')
       .attr("fill", function (d) {return updateCircleColor(d)})
+    d3.select('#blue-count').text(countInRect())
   }
 
   function updateCount(count) {
     d3.select('#count-value').text(count);
     d3.select('#count').property('value', count);
+    d3.select('#pdf-string').text("Hover of the PDF line")
+    d3.select('#cdf-string').text("Hover of the CDF line")
+    d3.select('#pdf-percent').text("...")
+    d3.select('#cdf-percent').text("...")
 
     setLineGraph()
+    resetHistogram()
   }
 
   function updateArea(area) {
     d3.select('#area').property('value', area);
+    d3.select('#area-value').text(formatAsPercentage(area));
+    d3.select('#pdf-string').text("Hover of the PDF line")
+    d3.select('#cdf-string').text("Hover of the CDF line")
+    d3.select('#pdf-percent').text("...")
+    d3.select('#cdf-percent').text("...")
     length = width * area;
     center = (width - length) / 2.0 ;
 
@@ -188,56 +432,101 @@
       .attr("width", length);
 
     setLineGraph()
+    resetHistogram()
   }
 
   function setLineGraph() {
     var area = d3.select('#area').property('value');
     var count = d3.select('#count').property('value');
     var pdf = binomialDistributionArray( Math.pow(parseFloat(area), 2), count)
-
     var cdf = []
 
     pdf.reduce(function(p,c,i){
-      cdf[i] = parseFloat((c.p)+ p)
+      cdf[i] = { i: i, p: parseFloat((c.p)+ p)}
       return parseFloat((c.p)+ p)
     }, 0)
-    
+
     x.domain([0, count])
-    y.domain(d3.extent(pdf,function(d) { return d.p }))
 
-    lineGraph.transition()
-      .attr('d', line(pdf))
+    yCDF.domain([0.0, 1.0]).clamp()
+    lineCDFGraph.datum(cdf)
+      .transition()
+      .attr('d', lineCDF(cdf))
       .attr('fill', 'none')
-      .attr("stroke-width", 1)
-      .attr("stroke", "black")
+      .attr("stroke-width", 2)
+      .attr("stroke", "black");
 
-    xAxisPDFLabel.call(xAxis);
+    yPDF.domain(d3.extent(pdf,function(d) { return d.p }))
+    lineGraph.datum(pdf)
+      .transition()
+      .attr('d', linePDF(pdf))
+      .attr('fill', 'none')
+      .attr("stroke-width", 2)
+      .attr("stroke", "steelblue")
+
+    xAxisPDFLabel.call(xAxis)
 
     yAxisPDFLabel.call(yAxis);
 
-    y.domain([0.0, 1.0]).clamp()
-    x.domain([0, count])
-
-    lineCDFGraph.transition()
-      .attr('d', lineCDF(cdf))
-      .attr('fill', 'none')
-      .attr("stroke-width", 1)
-      .attr("stroke", "black");
-
-    yAxisCDFLabel.call(yAxisRight);
+    yAxisCDFLabel.call(yAxisRight)
+    applyOverlay()
   }
 
-  function updateTrialCount() {
+  function applyOverlay() {
+    d3.selectAll('.overlay').remove()
+    var overlay = svg.append('rect')
+      .attr('class', 'overlay')
+      .attr('width', graph_width)
+      .attr('height', graph_height)
+      .on("mouseover", function(){
+        pdfFocus.style("display", null);
+        cdfFocus.style("display", null);
+      })
+      .on("mouseout", function(){
+        pdfFocus.style("display", 'none');
+        cdfFocus.style("display", 'none');
+        svg.selectAll(".bar")
+          .style("opacity", function(d){ return Math.min(Math.sqrt(d.length)/count, 0.5) })
+      })
+      .on("mousemove", function(){
+        var x0 = x.invert(d3.mouse(this)[0])
+        i = bisect(lineGraph.datum(), x0)
+        d0 = lineGraph.datum()[i - 1]
+        d1 = lineGraph.datum()[i]
+        d = x0 - d0.i> d1.i- x0 ? d1 : d0;
+        pdfFocus.attr("transform", "translate(" + x(d.i) + "," + yPDF(d.p) + ")");
+        pdfFocus.select("text").text(formatAsExactPercentage(d.p));
+        d3.select('#pdf-string').text("Probablity of " +d.i+ " are blue")
+        d3.select('#pdf-percent').text(formatAsExact(d.p))
+
+        i = bisect(lineCDFGraph.datum(), x0)
+        d0 = lineCDFGraph.datum()[i - 1]
+        d1 = lineCDFGraph.datum()[i]
+        d = x0 - d0.i> d1.i- x0 ? d1 : d0;
+        cdfFocus.attr("transform", "translate(" + x(d.i) + "," + yCDF(d.p) + ")");
+        cdfFocus.select("text").text(formatAsExactPercentage(d.p));
+        d3.select('#cdf-string').text("Probablity of " +d.i+ " OR LESS are blue")
+        d3.select('#cdf-percent').text(formatAsExact(d.p))
+
+        i = bisectHistogram(data, x0)
+        if (i > 0 && data.length > i ){
+          d0 = data[i - 1]
+          d1 = data[i]
+          d = x0 - d0.i> d1.i- x0 ? d1 : d0;
+          binRange = d3.extent(d)
+          range = (binRange[1] == binRange[0] ? binRange[1] : binRange.join(' - ')) || 0
+          d3.select('#histo-string').text( d.y+ " trial with "+range+" blue dots")
+
+          svg.selectAll(".bar")
+            .filter(function(datum){return d == datum})
+            .style('opacity', .6)
+          svg.selectAll(".bar")
+            .filter(function(datum){return d != datum})
+            .style("opacity", function(d){ return Math.min(Math.sqrt(d.length)/count, 0.5) })
+        }
+      })
   }
 
-  function resetTrialCount() {
-  }
-
-  function setExpectedCount(probablity, count) {
-  }
-
-  function setCurrentCount() {
-  }
 
   function uniformRandomSampler(width, height, numSamplesMax) {
     var numSamples = 0;
