@@ -298,6 +298,7 @@
   });
 
   d3.select('#clear').on('click', function() {
+    distribution.selectAll('circle').remove()
     resetHistogram()
   });
 
