@@ -157,23 +157,23 @@
   <script src="./d3.min.js"></script>
   <script>
 
-  var width = 200
-  var height = 200
+  var width = 200;
+  var height = 200;
 
   var graph_margin = {
     top: 20,
     right: 70,
     bottom: 70,
     left: 70
-  }
+  };
 
-  var graph_width = 600 - graph_margin.left - graph_margin.right
+  var graph_width = 600 - graph_margin.left - graph_margin.right;
   var graph_height = 300 - graph_margin.top - graph_margin.bottom;
 
   var distribution = d3.select(".distribution").append("svg")
     .attr("width", width)
     .attr("height", height)
-    .attr("border", 1 )
+    .attr("border", 1 );
 
   var square = distribution.append('rect')
     .attr("x", 125)
@@ -200,7 +200,7 @@
     .attr("width", graph_width + graph_margin.left + graph_margin.right)
     .attr("height", graph_height + graph_margin.top + graph_margin.bottom)
   .append('g')
-    .attr("transform", "translate(" + graph_margin.left + "," + graph_margin.top + ")")
+    .attr("transform", "translate(" + graph_margin.left + "," + graph_margin.top + ")");
 
   var x = d3.scale.linear()
     .range([0, graph_width]);
@@ -211,63 +211,64 @@
   var yPDF = d3.scale.linear()
     .range([graph_height, 0]);
 
-  var formatAsPercentage = d3.format(".1%")
-  var formatAsExactPercentage = d3.format(".3%")
-  var formatAsExact = d3.format(".15%")
+  var formatAsPercentage = d3.format(".1%");
+  var formatAsExactPercentage = d3.format(".3%");
+  var formatAsExact = d3.format(".15%");
 
   var xAxis = d3.svg.axis()
     .scale(x)
     .orient("bottom")
     .tickPadding(10)
-    .tickSubdivide(true)
+    .tickSubdivide(true);
 
   var yAxis = d3.svg.axis()
     .scale(yPDF)
     .orient("left")
     .tickPadding(10)
     .tickSubdivide(true)
-    .tickFormat(formatAsPercentage)
+    .tickFormat(formatAsPercentage);
 
   var yAxisRight = d3.svg.axis()
     .scale(yCDF)
     .orient("right")
     .tickPadding(10)
     .tickSubdivide(true)
-    .tickFormat(formatAsPercentage)
+    .tickFormat(formatAsPercentage);
 
   var lineGraph = svg.append('path')
-    .attr('class', 'pdf')
+    .attr('class', 'pdf');
 
   var lineCDFGraph = svg.append('path')
-    .attr('class', 'cdf')
+    .attr('class', 'cdf');
 
   var bar = svg.selectAll(".bar")
     .append("g")
-    .attr("class", "bar")
+    .attr("class", "bar");
 
   var linePDF = d3.svg.line()
     .interpolate("basis")
-    .x(function(d) { return x(d.i) })
-    .y(function(d) { return yPDF(d.p) })
+    .x(function(d) { return x(d.i); })
+    .y(function(d) { return yPDF(d.p); });
 
   var lineCDF = d3.svg.line()
     .interpolate("basis")
-    .x(function(d) { return x(d.i) })
-    .y(function(d) { return yCDF(d.p) });
+    .x(function(d) { return x(d.i); })
+    .y(function(d) { return yCDF(d.p); });
 
   var xAxisPDFLabel = svg.append('g')
     .attr("class", "x axis")
-    .attr("transform", "translate(0,"+graph_height+")")
+    .attr("transform", "translate(0,"+graph_height+")");
 
   var yAxisPDFLabel = svg.append("g")
-    .attr("class", "axis")
+    .attr("class", "axis");
 
   var yAxisCDFLabel = svg.append("g")
     .attr("transform", "translate(" + graph_width + " ,0)")
-    .attr("class", "axis")
+    .attr("class", "axis");
 
   var pdfFocus = svg.append("g")
-    .attr("class", "pdf-focus")
+    .attr("class", "pdf-focus");
+
   pdfFocus.append("circle")
     .attr("r", 4.5);
   pdfFocus.append("text")
@@ -275,15 +276,16 @@
     .attr("dy", ".35em");
 
   var cdfFocus = svg.append("g")
-    .attr("class", "cdf-focus")
+    .attr("class", "cdf-focus");
+
   cdfFocus.append("circle")
     .attr("r", 4.5);
   cdfFocus.append("text")
     .attr("x", 10)
     .attr("dy", ".35em");
 
-  var bisect = d3.bisector(function(d) { return d.i; }).left
-  var bisectHistogram = d3.bisector(function(d) { return d.x; }).left
+  var bisect = d3.bisector(function(d) { return d.i; }).left;
+  var bisectHistogram = d3.bisector(function(d) { return d.x; }).left;
 
   var dotCount = 0;
   var histrogramData = [];
@@ -306,8 +308,8 @@
   });
 
   d3.select('#clear').on('click', function() {
-    distribution.selectAll('circle').remove()
-    resetHistogram()
+    distribution.selectAll('circle').remove();
+    resetHistogram();
   });
 
   d3.select('#hundred').on('click', function() {
@@ -316,19 +318,19 @@
     var normalDistribution = d3.random.normal(dotCount * probablity, Math.sqrt(dotCount * probablity * (1-probablity)));
 
     for(var i = 1; i < 100; i++){
-      histrogramData.push(parseInt(normalDistribution()))
+      histrogramData.push(parseInt(normalDistribution()));
     }
 
     populateSquare();
-    setHistogram(histrogramData)
+    setHistogram(histrogramData);
   });
 
   function populateSquare(){
-    distribution.selectAll('circle').remove()
+    distribution.selectAll('circle').remove();
     var dotCount = d3.select('#count').property('value');
     var sample = uniformRandomSampler(width, height, dotCount);
+    var s = sample();
     for (var i = 0; i< dotCount; i++) {
-      var s = sample();
       distribution.append("circle")
           .attr("cx", s[0])
           .attr("cy", s[1])
@@ -336,95 +338,95 @@
           .data([{x: s[0], y: s[1]}])
         .transition()
           .attr("r", 6)
-          .attr("fill", function (d) {return updateCircleColor(d)})
-          .attr('opacity', 0.65)
+          .attr("fill", function (d) {return updateCircleColor(d);})
+          .attr('opacity', 0.65);
     }
-    d3.select('#blue-count').text(countInRect())
-    histrogramData.push(countInRect())
-    setHistogram(histrogramData)
-  };
+    d3.select('#blue-count').text(countInRect());
+    histrogramData.push(countInRect());
+    setHistogram(histrogramData);
+  }
 
   function setHistogram(histrogramData) {
-    tickCount = Math.max(parseInt(Math.pow(Math.log(histrogramData.length), 2)), 10)
+    tickCount = Math.max(parseInt(Math.pow(Math.log(histrogramData.length), 2)), 10);
     data = d3.layout.histogram().bins(x.ticks(tickCount))(histrogramData);
-    d3.select('#trial-count').text(histrogramData.length)
+    d3.select('#trial-count').text(histrogramData.length);
 
     var y = d3.scale.linear()
         .domain([0, d3.max(data, function(d) { return d.y; })])
         .range([graph_height, 0]);
 
-    svg.selectAll(".bar").remove()
+    svg.selectAll(".bar").remove();
 
     var bar = svg.selectAll(".bar")
-      .data(data)
+      .data(data);
 
       bar.enter()
        .append("g")
        .attr("transform", function(d) { return "translate(" +( x(d.x) - x(d.dx)/2.0) + "," + y(d.y) + ")"; })
        .append("rect")
        .attr('class', 'bar')
-       .attr("width", function(d){ return x(d.dx)})
+       .attr("width", function(d){ return x(d.dx);})
        .attr("height", function(d) { return graph_height - y(d.y); })
-       .style("opacity", .4)
+       .style("opacity", 0.4)
        .transition()
-       .style("opacity", function(d){ return Math.min(Math.sqrt(d.length)/count, 0.5) })
+       .style("opacity", function(d){ return Math.min(Math.sqrt(d.length)/count, 0.5); });
 
-    applyOverlay()
+    applyOverlay();
   }
 
   function resetHistogram() {
-    histrogramData = [ ]
-    setHistogram(histrogramData)
-    d3.select('#trial-count').text(0)
+    histrogramData = [];
+    setHistogram(histrogramData);
+    d3.select('#trial-count').text(0);
   }
 
   function updateCircleColor(d) {
-    rectData = distribution.select('rect').datum()
+    rectData = distribution.select('rect').datum();
     if(d.x >= rectData.topX && d.x <= rectData.botX && d.y >= rectData.topY &&  d.y <= rectData.botY){
-      return 'steelblue'
+      return 'steelblue';
     }else{
-      return 'black'
+      return 'black';
     }
   }
 
   function countInRect(){
-    rectData = distribution.select('rect').datum()
-    circlesData = distribution.selectAll('circle').data()
+    rectData = distribution.select('rect').datum();
+    circlesData = distribution.selectAll('circle').data();
 
-    return count = circlesData.reduce(function(memo, d){
+    return circlesData.reduce(function(memo, d){
       if(d.x >= rectData.topX && d.x <= rectData.botX && d.y >= rectData.topY &&  d.y <= rectData.botY){
-        return memo + 1
+        return memo + 1;
       } else {
-        return memo
+        return memo;
       }
     }, 0);
   }
 
   function updateCircles() {
     distribution.selectAll('circle')
-      .attr("fill", function (d) {return updateCircleColor(d)})
-    d3.select('#blue-count').text(countInRect())
+      .attr("fill", function (d) {return updateCircleColor(d);});
+    d3.select('#blue-count').text(countInRect());
   }
 
   function updateCount(count) {
     d3.select('#count-value').text(count);
     d3.select('#count').property('value', count);
-    d3.select('#pdf-string').text("Hover of the PDF line")
-    d3.select('#cdf-string').text("Hover of the CDF line")
-    d3.select('#pdf-percent').text("...")
-    d3.select('#cdf-percent').text("...")
+    d3.select('#pdf-string').text("Hover of the PDF line");
+    d3.select('#cdf-string').text("Hover of the CDF line");
+    d3.select('#pdf-percent').text("...");
+    d3.select('#cdf-percent').text("...");
 
-    setLineGraph()
-    resetHistogram()
+    setLineGraph();
+    resetHistogram();
   }
 
   function updateArea(area) {
-    d3.select('#area').property('value', area)
-    d3.select('#area-value').text(formatAsPercentage(Math.pow(area,2)))
-    d3.select('#pdf-string').text("Hover of the PDF line")
-    d3.select('#cdf-string').text("Hover of the CDF line")
-    d3.select('#pdf-percent').text("...")
-    d3.select('#cdf-percent').text("...")
+    d3.select('#area').property('value', area);
+    d3.select('#area-value').text(formatAsPercentage(Math.pow(area,2)));
+    d3.select('#pdf-string').text("Hover of the PDF line");
+    d3.select('#cdf-string').text("Hover of the CDF line");
+    d3.select('#pdf-percent').text("...");
+    d3.select('#cdf-percent').text("...");
     length = width * area;
     center = (width - length) / 2.0 ;
 
@@ -442,24 +444,24 @@
       .attr("height", length)
       .attr("width", length);
 
-    setLineGraph()
-    resetHistogram()
+    setLineGraph();
+    resetHistogram();
   }
 
   function setLineGraph() {
     var area = d3.select('#area').property('value');
     var count = d3.select('#count').property('value');
-    var pdf = binomialDistributionArray( Math.pow(parseFloat(area), 2), count)
-    var cdf = []
+    var pdf = binomialDistributionArray( Math.pow(parseFloat(area), 2), count);
+    var cdf = [];
 
     pdf.reduce(function(p,c,i){
-      cdf[i] = { i: i, p: parseFloat((c.p)+ p)}
-      return parseFloat((c.p)+ p)
-    }, 0)
+      cdf[i] = { i: i, p: parseFloat((c.p)+ p)};
+      return parseFloat((c.p)+ p);
+    }, 0);
 
-    x.domain([0, count])
+    x.domain([0, count]);
 
-    yCDF.domain([0.0, 1.0]).clamp()
+    yCDF.domain([0.0, 1.0]).clamp();
     lineCDFGraph.datum(cdf)
       .transition()
       .attr('d', lineCDF(cdf))
@@ -467,24 +469,24 @@
       .attr("stroke-width", 2)
       .attr("stroke", "black");
 
-    yPDF.domain(d3.extent(pdf,function(d) { return d.p }))
+    yPDF.domain(d3.extent(pdf,function(d) { return d.p; }));
     lineGraph.datum(pdf)
       .transition()
       .attr('d', linePDF(pdf))
       .attr('fill', 'none')
       .attr("stroke-width", 2)
-      .attr("stroke", "steelblue")
+      .attr("stroke", "steelblue");
 
-    xAxisPDFLabel.call(xAxis)
+    xAxisPDFLabel.call(xAxis);
 
     yAxisPDFLabel.call(yAxis);
 
-    yAxisCDFLabel.call(yAxisRight)
-    applyOverlay()
+    yAxisCDFLabel.call(yAxisRight);
+    applyOverlay();
   }
 
   function applyOverlay() {
-    d3.selectAll('.overlay').remove()
+    d3.selectAll('.overlay').remove();
     var overlay = svg.append('rect')
       .attr('class', 'overlay')
       .attr('width', graph_width)
@@ -497,45 +499,46 @@
         pdfFocus.style("display", 'none');
         cdfFocus.style("display", 'none');
         svg.selectAll(".bar")
-          .style("opacity", function(d){ return Math.min(Math.sqrt(d.length)/count, 0.5) })
+          .style("opacity", function(d){ return Math.min(Math.sqrt(d.length)/count, 0.5); });
       })
       .on("mousemove", function(){
-        var x0 = x.invert(d3.mouse(this)[0])
-        i = bisect(lineGraph.datum(), x0)
-        d0 = lineGraph.datum()[i - 1]
-        d1 = lineGraph.datum()[i]
+        var x0 = x.invert(d3.mouse(this)[0]);
+        i = bisect(lineGraph.datum(), x0);
+        d0 = lineGraph.datum()[i - 1];
+        d1 = lineGraph.datum()[i];
         d = x0 - d0.i> d1.i- x0 ? d1 : d0;
         pdfFocus.attr("transform", "translate(" + x(d.i) + "," + yPDF(d.p) + ")");
         pdfFocus.select("text").text(formatAsExactPercentage(d.p));
-        d3.select('#pdf-string').text("Probablity of " +d.i+ " are blue")
-        d3.select('#pdf-percent').text(formatAsExact(d.p))
+        d3.select('#pdf-string').text("Probablity of " +d.i+ " are blue");
+        d3.select('#pdf-percent').text(formatAsExact(d.p));
 
-        i = bisect(lineCDFGraph.datum(), x0)
-        d0 = lineCDFGraph.datum()[i - 1]
-        d1 = lineCDFGraph.datum()[i]
+        i = bisect(lineCDFGraph.datum(), x0);
+        d0 = lineCDFGraph.datum()[i - 1];
+        d1 = lineCDFGraph.datum()[i];
         d = x0 - d0.i> d1.i- x0 ? d1 : d0;
         cdfFocus.attr("transform", "translate(" + x(d.i) + "," + yCDF(d.p) + ")");
         cdfFocus.select("text").text(formatAsExactPercentage(d.p));
-        d3.select('#cdf-string').text("Probablity of " +d.i+ " OR LESS are blue")
-        d3.select('#cdf-percent').text(formatAsExact(d.p))
+        d3.select('#cdf-string').text("Probablity of " +d.i+ " OR LESS are blue");
+        d3.select('#cdf-percent').text(formatAsExact(d.p));
 
-        i = bisectHistogram(data, x0)
+        i = bisectHistogram(data, x0);
         if (i > 0 && data.length > i ){
-          d0 = data[i - 1]
-          d1 = data[i]
+          d0 = data[i - 1];
+          d1 = data[i];
           d = x0 - d0.i> d1.i- x0 ? d1 : d0;
-          binRange = d3.extent(d)
-          range = (binRange[1] == binRange[0] ? binRange[1] : binRange.join(' - ')) || 0
-          d3.select('#histo-string').text( d.y+ " trial with "+range+" blue dots")
+          binRange = d3.extent(d);
+          range = (binRange[1] == binRange[0] ? binRange[1] : binRange.join(' - ')) || 0;
+          d3.select('#histo-string').text( d.y+ " trial with "+range+" blue dots");
 
           svg.selectAll(".bar")
-            .filter(function(datum){return d == datum})
-            .style('opacity', .6)
+            .filter(function(datum){return d == datum;})
+            .style('opacity', 0.6);
+
           svg.selectAll(".bar")
-            .filter(function(datum){return d != datum})
-            .style("opacity", function(d){ return Math.min(Math.sqrt(d.length)/count, 0.5) })
+            .filter(function(datum){return d != datum;})
+            .style("opacity", function(d){ return Math.min(Math.sqrt(d.length)/count, 0.5); });
         }
-      })
+      });
   }
 
 
@@ -548,16 +551,16 @@
   }
 
   function binomialDistributionArray(p, n) {
-    binomialMassArray = []
+    binomialMassArray = [];
     for(var i=0; i <= n; i++){
       binomialMassArray.push(
         {
           'p': (factorial(n)/(factorial(n-i)*factorial(i))) * Math.pow(p,i) * Math.pow((1-p),n-i),
           'i': i
         }
-      )
+      );
     }
-    return binomialMassArray
+    return binomialMassArray;
   }
 
   </script>
